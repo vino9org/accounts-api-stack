@@ -1,0 +1,27 @@
+type account {
+  id: ID!
+  customer_id: String!
+  name: String!
+  short_name: String!
+  ledger_balance: Float!
+  avail_balance: Float!
+  currency: String!
+  status: String!
+  last_updated: AWSDateTime!
+}
+
+# type transaction {
+#   id: ID!
+#   account_id: ID!
+#   memo: String
+#   amount: Float!
+#   currency: String!
+#   status: String!
+#   last_updated: AWSDateTime!
+# }
+
+
+type Query {
+    getAccountsForCustomer(customerId: String!): [ account! ]
+#     getTransactionsForAccount(accountId: ID!): [ transaction! ]
+}
