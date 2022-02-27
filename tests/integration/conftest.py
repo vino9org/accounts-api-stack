@@ -4,7 +4,7 @@ from typing import List
 
 import boto3
 import pytest
-import test_constants as constants
+import test_utils as utils
 from botocore.exceptions import ClientError
 from requests_aws4auth import AWS4Auth
 
@@ -26,16 +26,21 @@ def accounts_table_name() -> str:
     return stack_outputs_for_key("AccountsTableName")[0]
 
 
+@pytest.fixture(scope="session")
+def transactions_table_name() -> str:
+    return stack_outputs_for_key("TransactionsTableName")[0]
+
+
 @pytest.fixture(autouse=True)
-def seed_data(accounts_table_name):
+def seed_data(accounts_table_name, transactions_table_name):
     """ensure seed data is in database"""
     print("......seeding test data.....")
     ddb = boto3.resource("dynamodb")
-    table = ddb.Table(accounts_table_name)
-    table.put_item(
+    accounts_table = ddb.Table(accounts_table_name)
+    accounts_table.put_item(
         Item={
-            "customer_id": constants.TEST_CUSTOMER_ID_1,
-            "id": constants.TEST_ACCOUNT_ID_1,
+            "customer_id": utils.TEST_CUSTOMER_ID_1,
+            "id": utils.TEST_ACCOUNT_ID_1,
             "name": "Magic Saving Account",
             "prod_code": "SAV001",
             "ledger_balance": Decimal(12345678.90),
@@ -43,6 +48,32 @@ def seed_data(accounts_table_name):
             "currency": "SGD",
             "status": "active",
             "last_updated": "2022-02-27T13:20:03.126945Z",
+        }
+    )
+
+    transactions_table = ddb.Table(transactions_table_name)
+    transactions_table.put_item(
+        Item={
+            "account_id": utils.TEST_ACCOUNT_ID_1,
+            "id": "i4HGdW4JhpiadPtawWgt9j",
+            "memo": "To Vinobank account (abcde)",
+            "amount": Decimal(123),
+            "currency": "SGD",
+            "status": "completed",
+            "transaction_date": "2022-02-27",
+            "last_updated": "2022-02-27T21:20:06.126012Z",
+        }
+    )
+    transactions_table.put_item(
+        Item={
+            "account_id": utils.TEST_ACCOUNT_ID_1,
+            "id": "B8BKqeDR9S8EDgvpB9WLL5",
+            "memo": "Mobile topup (01233)",
+            "amount": Decimal(88),
+            "currency": "SGD",
+            "status": "completed",
+            "transaction_date": "2022-02-27",
+            "last_updated": "2022-02-27T21:22:07.214031Z",
         }
     )
 

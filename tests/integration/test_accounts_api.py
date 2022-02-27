@@ -1,13 +1,4 @@
-import requests
-import test_constants as constants
-
-
-def run_query(endpoint, auth, query):
-    response = requests.post(endpoint, json={"query": query}, auth=auth)
-    if response.status_code == 200:
-        return response.json()
-    else:
-        raise Exception(f"Query failed to run by returning code of {response.status_code}. {response.content}")
+import test_utils as utils
 
 
 def test_query_account(api_url, api_auth):
@@ -22,10 +13,10 @@ def test_query_account(api_url, api_auth):
         }
     }
     """ % (
-        constants.TEST_CUSTOMER_ID_1
+        utils.TEST_CUSTOMER_ID_1
     )
 
-    response = run_query(
+    response = utils.run_query(
         api_url,
         api_auth,
         query,
@@ -33,4 +24,4 @@ def test_query_account(api_url, api_auth):
 
     accounts = response["data"]["getAccountsForCustomer"]
     assert len(accounts) == 1
-    assert accounts[0]["id"] == constants.TEST_ACCOUNT_ID_1
+    assert accounts[0]["id"] == utils.TEST_ACCOUNT_ID_1
