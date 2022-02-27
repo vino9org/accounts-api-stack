@@ -50,8 +50,8 @@ class AccountsApiStack(Stack):
         account_dS.create_resolver(
             type_name="Query",
             field_name="getAccountsForCustomer",
-            request_mapping_template=appsync.MappingTemplate.from_file(
-                f"{resolver_path}/get_accounts_for_customer.vtl"
+            request_mapping_template=appsync.MappingTemplate.dynamo_db_query(
+                cond=appsync.KeyCondition.eq("customer_id", "customerId"),
             ),
             response_mapping_template=appsync.MappingTemplate.dynamo_db_result_list(),
         )
