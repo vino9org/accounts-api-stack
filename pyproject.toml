@@ -16,6 +16,8 @@ constructs = "10.*"
 pytest = "^6.2.5"
 pytest-mock = "^3.5.1"
 pytest-cov = "^3.0.0"
+"aws-cdk.aws-appsync-alpha" = "^2.14.0-alpha.0"
+requests-aws4auth = "^1.1.1"
 
 
 [build-system]
@@ -53,6 +55,7 @@ minversion = "6.0"
 # addopts = "--cov=limits --cov-report html --cov-report xml"
 testpaths = [
     "tests/unit",
+    "tests/integration",
 ]
 
 [tool.coverage.run]

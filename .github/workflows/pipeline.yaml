@@ -50,7 +50,6 @@ jobs:
       - name: unit tests
         run: |
           echo running unit tests on stack $TESTING_STACK_NAME
-          pip install -r runtime/requirements.txt --target=runtime/.
           pip install -r requirements.txt
           pytest tests/unit
         env: 
@@ -113,4 +112,3 @@ jobs:
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           AWS_DEFAULT_REGION: ${{ env.AWS_DEFAULT_REGION }}
           TESTING_STACK_NAME: ${{ needs.set-stack-name.outputs.stack-name }}
-
