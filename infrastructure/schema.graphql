@@ -2,7 +2,7 @@ type account {
   id: ID!
   customer_id: String!
   name: String!
-  short_name: String!
+  prod_code: String!
   ledger_balance: Float!
   avail_balance: Float!
   currency: String!

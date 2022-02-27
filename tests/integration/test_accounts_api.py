@@ -1,4 +1,5 @@
 import requests
+import test_constants as constants
 
 
 def run_query(endpoint, auth, query):
@@ -13,13 +14,17 @@ def test_query_account(api_url, api_auth):
     query = """
     query test1 {
         getAccountsForCustomer(
-            customerId: "1234"
+            customerId: "%s"
         ) {
+            id
             avail_balance
             currency
         }
     }
-"""
+    """ % (
+        constants.TEST_CUSTOMER_ID_1
+    )
+
     response = run_query(
         api_url,
         api_auth,
@@ -28,4 +33,4 @@ def test_query_account(api_url, api_auth):
 
     accounts = response["data"]["getAccountsForCustomer"]
     assert len(accounts) == 1
-    assert accounts[0]["currency"] == "SGD"
+    assert accounts[0]["id"] == constants.TEST_ACCOUNT_ID_1

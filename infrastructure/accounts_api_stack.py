@@ -1,4 +1,5 @@
 import os.path
+from typing import Tuple
 
 import aws_cdk.aws_appsync_alpha as appsync
 from aws_cdk import CfnOutput, RemovalPolicy, Stack
@@ -11,11 +12,12 @@ class AccountsApiStack(Stack):
         super().__init__(scope, construct_id, **kwargs)
 
     def build(self):
-        api = self.build_appsync_accounts()
+        api, table = self.build_appsync_accounts()
         CfnOutput(self, "AccountsApiUrl", value=api.graphql_url)
+        CfnOutput(self, "AccountsTableName", value=table.table_name)
         return self
 
-    def build_appsync_accounts(self) -> appsync.GraphqlApi:
+    def build_appsync_accounts(self) -> Tuple[appsync.GraphqlApi, dynamodb.Table]:
         schema_dir = os.path.abspath(os.path.dirname(__file__))
         api = appsync.GraphqlApi(
             self,
@@ -30,6 +32,7 @@ class AccountsApiStack(Stack):
                 field_log_level=appsync.FieldLogLevel.ALL,
             ),
         )
+        api.apply_removal_policy(RemovalPolicy.DESTROY)
 
         account_table = dynamodb.Table(
             self,
@@ -45,8 +48,24 @@ class AccountsApiStack(Stack):
         account_dS.create_resolver(
             type_name="Query",
             field_name="getAccountsForCustomer",
-            request_mapping_template=appsync.MappingTemplate.dynamo_db_scan_table(),
+            request_mapping_template=appsync.MappingTemplate.from_string(
+                """
+            {
+                "version" : "2017-02-28",
+                "operation" : "Query",
+                "query" : {
+                    "expression": "customer_id = :id",
+                    "expressionValues" : {
+                        ":id" : $util.dynamodb.toDynamoDBJson($ctx.args.customerId)
+                    }
+                }
+            }
+            """
+            ),
+            # dynamo_db_query(
+            #     cond=appsync.KeyCondition.eq("customer_id", "$util.dynamodb.toDynamoDBJson($ctx.args.customerId)")
+            # ),
             response_mapping_template=appsync.MappingTemplate.dynamo_db_result_list(),
         )
 
-        return api
+        return api, account_table

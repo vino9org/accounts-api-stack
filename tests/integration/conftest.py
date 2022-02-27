@@ -1,8 +1,10 @@
 import os
+from decimal import Decimal
 from typing import List
 
 import boto3
 import pytest
+import test_constants as constants
 from botocore.exceptions import ClientError
 from requests_aws4auth import AWS4Auth
 
@@ -17,6 +19,32 @@ def api_auth() -> str:
 @pytest.fixture(scope="session")
 def api_url() -> str:
     return stack_outputs_for_key("AccountsApiUrl")[0]
+
+
+@pytest.fixture(scope="session")
+def accounts_table_name() -> str:
+    return stack_outputs_for_key("AccountsTableName")[0]
+
+
+@pytest.fixture(autouse=True)
+def seed_data(accounts_table_name):
+    """ensure seed data is in database"""
+    print("......seeding test data.....")
+    ddb = boto3.resource("dynamodb")
+    table = ddb.Table(accounts_table_name)
+    table.put_item(
+        Item={
+            "customer_id": constants.TEST_CUSTOMER_ID_1,
+            "id": constants.TEST_ACCOUNT_ID_1,
+            "name": "Magic Saving Account",
+            "prod_code": "SAV001",
+            "ledger_balance": Decimal(12345678.90),
+            "avail_balance": Decimal(12345600.01),
+            "currency": "SGD",
+            "status": "active",
+            "last_updated": "2022-02-27T13:20:03.126945Z",
+        }
+    )
 
 
 def stack_outputs_for_key(key: str) -> List[str]:
