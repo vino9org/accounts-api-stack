@@ -6,6 +6,8 @@ from aws_cdk import CfnOutput, RemovalPolicy, Stack
 from aws_cdk import aws_dynamodb as dynamodb
 from constructs import Construct
 
+resolver_path = os.path.dirname(__file__) + "/resolvers"
+
 
 class AccountsApiStack(Stack):
     def __init__(self, scope: Construct, construct_id: str, **kwargs) -> None:
@@ -48,23 +50,9 @@ class AccountsApiStack(Stack):
         account_dS.create_resolver(
             type_name="Query",
             field_name="getAccountsForCustomer",
-            request_mapping_template=appsync.MappingTemplate.from_string(
-                """
-            {
-                "version" : "2017-02-28",
-                "operation" : "Query",
-                "query" : {
-                    "expression": "customer_id = :id",
-                    "expressionValues" : {
-                        ":id" : $util.dynamodb.toDynamoDBJson($ctx.args.customerId)
-                    }
-                }
-            }
-            """
+            request_mapping_template=appsync.MappingTemplate.from_file(
+                f"{resolver_path}/get_accounts_for_customer.vtl"
             ),
-            # dynamo_db_query(
-            #     cond=appsync.KeyCondition.eq("customer_id", "$util.dynamodb.toDynamoDBJson($ctx.args.customerId)")
-            # ),
             response_mapping_template=appsync.MappingTemplate.dynamo_db_result_list(),
         )
 
