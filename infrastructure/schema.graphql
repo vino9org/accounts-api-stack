@@ -7,7 +7,7 @@ type account {
     avail_balance: Float!
     currency: String!
     status: String!
-    last_updated: AWSDateTime!
+    updated_at: AWSDateTime!
 }
 
 type transaction {
@@ -18,7 +18,7 @@ type transaction {
     currency: String!
     status: String!
     transaction_date: AWSDate!
-    last_updated: AWSDateTime!
+    updated_at: AWSDateTime!
 }
 
 

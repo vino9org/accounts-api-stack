@@ -47,7 +47,7 @@ def seed_data(accounts_table_name, transactions_table_name):
             "avail_balance": Decimal(12345600.01),
             "currency": "SGD",
             "status": "active",
-            "last_updated": "2022-02-27T13:20:03.126945Z",
+            "updated_at": "2022-02-27T13:20:03.126945Z",
         }
     )
 
@@ -61,7 +61,7 @@ def seed_data(accounts_table_name, transactions_table_name):
             "currency": "SGD",
             "status": "completed",
             "transaction_date": "2022-02-27",
-            "last_updated": "2022-02-27T21:20:06.126012Z",
+            "updated_at": "2022-02-27T21:20:06.126012Z",
         }
     )
     transactions_table.put_item(
@@ -73,7 +73,7 @@ def seed_data(accounts_table_name, transactions_table_name):
             "currency": "SGD",
             "status": "completed",
             "transaction_date": "2022-02-27",
-            "last_updated": "2022-02-27T21:22:07.214031Z",
+            "updated_at": "2022-02-27T21:22:07.214031Z",
         }
     )
 
