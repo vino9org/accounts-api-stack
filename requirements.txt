@@ -13,6 +13,15 @@ aws-cdk.aws-appsync-alpha==2.14.0a0; python_version >= "3.6" \
 aws-lambda-powertools==1.25.1; python_full_version >= "3.6.2" and python_full_version < "4.0.0" \
     --hash=sha256:15adbe2585d323bd9d6cf17e0cc007662acc277638cbbd28b68b056d263ce7b8 \
     --hash=sha256:ce67df80770357a238dda94a1466081e7c74a9b62b384f4c79fecbf2364b8992
+aws-solutions-constructs.aws-eventbridge-lambda==2.3.0; python_version >= "3.6" \
+    --hash=sha256:f9eaf9cf7cf72b1ce15b1d1df142975795cd09166114780eb49064fbbbe5712a \
+    --hash=sha256:cb530366030a508fbe9827c163013bfadd9963ac13dd4902ce09816ea97d960d
+aws-solutions-constructs.aws-lambda-dynamodb==2.3.0; python_version >= "3.6" \
+    --hash=sha256:384f8ec055881a7853051ae95465b8a2734266773b4a865f8cebed4b70f83bcf \
+    --hash=sha256:a259ec78d7cb812ad46d6d9dc9a9d5303a5ded0f8c0eaa92630e0027ad9e0f13
+aws-solutions-constructs.core==2.3.0; python_version >= "3.6" \
+    --hash=sha256:e1abc3892037e45ec375ebb12c8043670de1b88c3196b32633b6941a2e04e1b3 \
+    --hash=sha256:d1c32b11a112801fff167113116ae7dc43b600393e75b4536dde38c7f1e309ec
 aws-xray-sdk==2.9.0; python_full_version >= "3.6.2" and python_full_version < "4.0.0" \
     --hash=sha256:b0cd972db218d4d8f7b53ad806fc6184626b924c4997ae58fc9f2a8cd1281568 \
     --hash=sha256:98216b3ac8281b51b59a8703f8ec561c460807d9d0679838f5c0179d381d7e58
