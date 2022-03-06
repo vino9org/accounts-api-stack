@@ -1,6 +1,7 @@
 import os
 from datetime import datetime, timedelta
 from typing import Dict, Tuple, Union, cast
+from urllib.parse import urlparse
 
 from aws_lambda_powertools import Logger, Metrics, Tracer
 from aws_lambda_powertools.utilities import parameters
@@ -38,3 +39,11 @@ def _get_env() -> str:
 def iso_timestamp(offset: int = 0) -> str:
     """return ISO string of for offset seconds from now"""
     return (datetime.now() + timedelta(seconds=offset)).isoformat()
+
+
+def is_http_url(url) -> bool:
+    try:
+        parts = urlparse(url)
+        return parts.scheme and parts.scheme in ["http", "https"] and parts.netloc
+    except ValueError:
+        return False

@@ -7,20 +7,19 @@ import boto3
 import pytest
 from botocore.exceptions import ClientError
 
-from accounts_api import utils
+import utils
 
 
 # create a test table before test execution
 @pytest.fixture(scope="session", autouse=True)
 def ddb_table() -> None:
-    suffix = uuid.uuid1().replace("-", "")
     local_dynamodb_url = os.environ.get("LOCAL_DYNAMODB_URL")
     if not (local_dynamodb_url and utils.is_http_url(local_dynamodb_url)):
         print("LOCAL_DYNAMODB_URL not defined or malformed, fall back to default AWS endpoint")
         return
 
     ddb = boto3.resource("dynamodb", endpoint_url=local_dynamodb_url)
-    table_name = f"limits-manager-{suffix}"
+    table_name = f"limits-manager-{uuid.uuid1().hex}"
     try:
         ddb.create_table(
             TableName=table_name,
@@ -39,7 +38,7 @@ def ddb_table() -> None:
     except ClientError as e:
         print("Test table already exits..", e)
 
-    os.environ.put("DDB_TABLE", table_name)
+    os.environ["DDB_TABLE"] = table_name
 
 
 @pytest.fixture
