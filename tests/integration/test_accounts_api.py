@@ -58,4 +58,4 @@ def test_query_transactions(api_url, api_auth):
     transactions = response["data"]["getTransactionsForAccount"]
 
     assert transactions is not None
-    assert len(transactions) == 2
+    assert len(transactions) >= 2
