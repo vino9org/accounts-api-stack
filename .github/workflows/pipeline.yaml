@@ -47,12 +47,19 @@ jobs:
         with:
           python-version: '3.9'
 
+      - name: setup local dynamo db
+        uses: rrainn/dynamodb-action@v2.0.1
+        with:
+          port: 8000
+          cors: '*'
+
       - name: unit tests
         run: |
           echo running unit tests on stack $TESTING_STACK_NAME
           pip install -r requirements.txt
           pytest tests/unit
         env: 
+          LOCAL_DYNAMODB_URL: http://localhost:8000
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           AWS_DEFAULT_REGION: ${{ env.AWS_DEFAULT_REGION }}
