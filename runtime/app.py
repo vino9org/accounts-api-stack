@@ -3,7 +3,8 @@ from typing import Any, Dict
 from aws_lambda_powertools.utilities.data_classes import EventBridgeEvent
 from aws_lambda_powertools.utilities.typing import LambdaContext
 
-from accounts_api import handle_event, utils
+from accounts_api import utils
+from accounts_api.event_handler import handle_event
 
 logger, metrics, tracer = utils.init_monitoring()
 
