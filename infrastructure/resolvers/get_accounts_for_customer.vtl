@@ -2,7 +2,7 @@
     "version" : "2017-02-28", 
     "operation" : "Query", 
     "query" : {
-        "expression" : "id = :customerId AND begins_with(id, :prefix)",
+        "expression" : "id = :customerId AND begins_with(sid, :prefix)",
         "expressionValues" : {
             ":customerId" : $util.dynamodb.toDynamoDBJson($ctx.args.customerId),
             ":prefix" : $util.dynamodb.toDynamoDBJson("ACC_")
