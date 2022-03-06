@@ -1,6 +1,6 @@
 type account {
     id: ID!
-    customer_id: String!
+    sid: String!
     name: String!
     prod_code: String!
     ledger_balance: Float!
@@ -12,7 +12,7 @@ type account {
 
 type transaction {
     id: ID!
-    account_id: ID!
+    sid: ID!
     memo: String
     amount: Float!
     currency: String!
