@@ -1,4 +1,3 @@
-import json
 import os
 from decimal import Decimal
 from typing import Any, Dict
@@ -84,6 +83,4 @@ def process_transfer_event(event_detail: Dict[str, Any], ddb_table=None) -> bool
 def lambda_handler(event: Dict[str, Any], context: LambdaContext):
     logger.info(event)
     eb_event = EventBridgeEvent(event)
-    detail = json.loads(eb_event.detail)
-    ddb_table = get_ddb_table()
-    return process_transfer_event(detail, ddb_table)
+    return process_transfer_event(eb_event.detail, get_ddb_table())
