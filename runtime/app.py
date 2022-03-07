@@ -3,7 +3,6 @@ import os
 from decimal import Decimal
 from typing import Any, Dict
 
-import aws_cdk.aws_dynamodb as dynamodb
 import boto3
 from aws_lambda_powertools.utilities.data_classes import EventBridgeEvent
 from aws_lambda_powertools.utilities.typing import LambdaContext
@@ -14,7 +13,7 @@ import utils
 logger, metrics, tracer = utils.init_monitoring()
 
 
-def get_ddb_table() -> dynamodb.Table:
+def get_ddb_table():
     table_name = os.environ.get("DDB_TABLE")
     if not table_name:
         raise "DDB_TABLE is not set"
@@ -23,7 +22,7 @@ def get_ddb_table() -> dynamodb.Table:
 
 
 @tracer.capture_method
-def process_transfer_event(event_detail: Dict[str, Any], ddb_table: dynamodb.Table = None) -> bool:
+def process_transfer_event(event_detail: Dict[str, Any], ddb_table=None) -> bool:
     # to prevent eventbridge from retrying requests
     # unneccessarily, we need to handle exceptions thrown
     # from processing logic
