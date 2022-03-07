@@ -1,4 +1,5 @@
 import os
+from decimal import Decimal
 from typing import Any, Dict
 
 import boto3
@@ -21,13 +22,12 @@ def handle_event(event_detail: Dict[str, Any]) -> bool:
         customer_id = event_detail["customer_id"]
         account_id = event_detail["account_id"]
         currency = event_detail["currency"]
-        amount = event_detail["transfer_amount"]
         memo = event_detail["memo"]
         status = event_detail["status"]
-        new_bal = event_detail["new_balance"]
-        new_avail_bal = event_detail["new_avail_balance"]
-
         transaction_date = event_detail["transaction_date"]
+        amount = Decimal(str(event_detail["transfer_amount"]))
+        new_bal = Decimal(str(event_detail["new_balance"]))
+        new_avail_bal = Decimal(str(event_detail["new_avail_balance"]))
 
         ddb = boto3.resource("dynamodb")
         account_table = ddb.Table(os.environ.get("DDB_TABLE", ""))
