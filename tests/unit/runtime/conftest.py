@@ -3,6 +3,7 @@ import os.path
 import uuid
 from dataclasses import dataclass
 
+import aws_cdk.aws_dynamodb as dynamodb
 import boto3
 import pytest
 from botocore.exceptions import ClientError
@@ -11,25 +12,25 @@ import utils
 
 
 # create a test table before test execution
-@pytest.fixture(scope="session", autouse=True)
-def ddb_table() -> None:
+@pytest.fixture(scope="session")
+def ddb_table() -> dynamodb.Table:
     local_dynamodb_url = os.environ.get("LOCAL_DYNAMODB_URL")
     if not (local_dynamodb_url and utils.is_http_url(local_dynamodb_url)):
         print("LOCAL_DYNAMODB_URL not defined or malformed, fall back to default AWS endpoint")
         return
 
     ddb = boto3.resource("dynamodb", endpoint_url=local_dynamodb_url)
-    table_name = f"limits-manager-{uuid.uuid1().hex}"
+    table_name = f"accounts-api-{uuid.uuid1().hex}"
     try:
         ddb.create_table(
             TableName=table_name,
             KeySchema=[
-                {"AttributeName": "customer_id", "KeyType": "HASH"},  # Partition key
-                {"AttributeName": "request_id", "KeyType": "RANGE"},  # Sort key
+                {"AttributeName": "id", "KeyType": "HASH"},  # Partition key
+                {"AttributeName": "sid", "KeyType": "RANGE"},  # Sort key
             ],
             AttributeDefinitions=[
-                {"AttributeName": "customer_id", "AttributeType": "S"},
-                {"AttributeName": "request_id", "AttributeType": "S"},
+                {"AttributeName": "id", "AttributeType": "S"},
+                {"AttributeName": "sid", "AttributeType": "S"},
             ],
             ProvisionedThroughput={"ReadCapacityUnits": 10, "WriteCapacityUnits": 10},
         )
@@ -38,7 +39,7 @@ def ddb_table() -> None:
     except ClientError as e:
         print("Test table already exits..", e)
 
-    os.environ["DDB_TABLE"] = table_name
+    return ddb.Table(table_name)
 
 
 @pytest.fixture

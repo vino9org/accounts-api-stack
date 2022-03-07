@@ -1,7 +1,9 @@
+import json
 import os
 from decimal import Decimal
 from typing import Any, Dict
 
+import aws_cdk.aws_dynamodb as dynamodb
 import boto3
 from aws_lambda_powertools.utilities.data_classes import EventBridgeEvent
 from aws_lambda_powertools.utilities.typing import LambdaContext
@@ -12,8 +14,16 @@ import utils
 logger, metrics, tracer = utils.init_monitoring()
 
 
+def get_ddb_table() -> dynamodb.Table:
+    table_name = os.environ.get("DDB_TABLE")
+    if not table_name:
+        raise "DDB_TABLE is not set"
+    ddb = boto3.resource("dynamodb")
+    return ddb.Table(table_name)
+
+
 @tracer.capture_method
-def handle_event(event_detail: Dict[str, Any]) -> bool:
+def process_transfer_event(event_detail: Dict[str, Any], ddb_table: dynamodb.Table = None) -> bool:
     # to prevent eventbridge from retrying requests
     # unneccessarily, we need to handle exceptions thrown
     # from processing logic
@@ -29,10 +39,7 @@ def handle_event(event_detail: Dict[str, Any]) -> bool:
         new_bal = Decimal(str(event_detail["new_balance"]))
         new_avail_bal = Decimal(str(event_detail["new_avail_balance"]))
 
-        ddb = boto3.resource("dynamodb")
-        account_table = ddb.Table(os.environ.get("DDB_TABLE", ""))
-
-        account_table.put_item(
+        ddb_table.put_item(
             Item={
                 "id": account_id,
                 "sid": f"TRX_{transaction_id}",
@@ -45,7 +52,7 @@ def handle_event(event_detail: Dict[str, Any]) -> bool:
             }
         )
 
-        account_table.update_item(
+        ddb_table.update_item(
             Key={
                 "id": customer_id,
                 "sid": account_id,
@@ -53,23 +60,22 @@ def handle_event(event_detail: Dict[str, Any]) -> bool:
             UpdateExpression="""
                 SET avail_balance = :new_avail_balance,
                     ledger_balance  = :new_ledger_balance,
-                    updated_at = :new_timestamp,
+                    updated_at = :new_timestamp
             """,
             ExpressionAttributeValues={
-                "customer_id": customer_id,
-                "account_id": f"ACC_{account_id}",
-                "new_avail_balance": new_avail_bal,
-                "new_bal": new_bal,
-                "new_timestamp": utils.iso_timestamp(),
+                ":new_avail_balance": new_avail_bal,
+                ":new_ledger_balance": new_bal,
+                ":new_timestamp": utils.iso_timestamp(),
             },
         )
 
         return True
     except KeyError as e:
-        print(e)
         logger.warning("event does not have required attribute %s", e)
     except ClientError as e:
         logger.warning("AWS API exception during processing: %s", e)
+    except Exception as e:
+        raise e
 
     return False
 
@@ -77,4 +83,6 @@ def handle_event(event_detail: Dict[str, Any]) -> bool:
 def lambda_handler(event: Dict[str, Any], context: LambdaContext):
     logger.info(event)
     eb_event = EventBridgeEvent(event)
-    return handle_event(eb_event.detail)
+    detail = json.loads(eb_event.detail)
+    ddb_table = get_ddb_table()
+    return process_transfer_event(detail, ddb_table)
