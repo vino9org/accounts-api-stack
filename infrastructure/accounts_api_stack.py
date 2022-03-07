@@ -18,11 +18,12 @@ class AccountsApiStack(Stack):
         super().__init__(scope, construct_id, **kwargs)
 
     def build(self):
-        accounts_table = self.dynamodb_table_for_lambda().dynamo_table
-        api = self.build_appsync_accounts(accounts_table)
+        cons = self.dynamodb_table_for_lambda()
+        api = self.build_appsync_accounts(cons.dynamo_table)
+        self.event_bridge_trigger_for_lambda(cons.lambda_function)
 
         CfnOutput(self, "AccountsApiUrl", value=api.graphql_url)
-        CfnOutput(self, "AccountsTableName", value=accounts_table.table_name)
+        CfnOutput(self, "AccountsTableName", value=cons.dynamo_table.table_name)
 
         return self
 

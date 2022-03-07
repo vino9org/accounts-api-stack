@@ -16,5 +16,17 @@ def stack() -> Template:
     return assertions.Template.from_stack(stack)
 
 
-def test_stack_created(stack) -> None:
-    assert stack
+def test_iam_roles_created(stack) -> None:
+    assert len(stack.find_resources("AWS::IAM::Role")) == 4
+
+
+def test_lambda_created(stack) -> None:
+    all_funcs = stack.find_resources("AWS::Lambda::Function")
+    func = next(iter(all_funcs.values()))
+    assert "python" in func["Properties"]["Runtime"]
+
+
+def test_dyanmodb_table_created(stack) -> None:
+    all_tables = stack.find_resources("AWS::DynamoDB::Table")
+    table_name = next(iter(all_tables.keys()))
+    assert "AccountsApiStack" in table_name

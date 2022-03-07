@@ -1,4 +1,5 @@
 import os
+from decimal import Decimal
 from typing import Any, Dict
 
 import boto3
@@ -11,8 +12,16 @@ import utils
 logger, metrics, tracer = utils.init_monitoring()
 
 
+def get_ddb_table():
+    table_name = os.environ.get("DDB_TABLE_NAME")
+    if not table_name:
+        raise "DDB_TABLE_NAME is not set"
+    ddb = boto3.resource("dynamodb")
+    return ddb.Table(table_name)
+
+
 @tracer.capture_method
-def handle_event(event_detail: Dict[str, Any]) -> bool:
+def process_transfer_event(event_detail: Dict[str, Any], ddb_table=None) -> bool:
     # to prevent eventbridge from retrying requests
     # unneccessarily, we need to handle exceptions thrown
     # from processing logic
@@ -21,18 +30,14 @@ def handle_event(event_detail: Dict[str, Any]) -> bool:
         customer_id = event_detail["customer_id"]
         account_id = event_detail["account_id"]
         currency = event_detail["currency"]
-        amount = event_detail["transfer_amount"]
         memo = event_detail["memo"]
         status = event_detail["status"]
-        new_bal = event_detail["new_balance"]
-        new_avail_bal = event_detail["new_avail_balance"]
-
         transaction_date = event_detail["transaction_date"]
+        amount = Decimal(str(event_detail["transfer_amount"]))
+        new_bal = Decimal(str(event_detail["new_balance"]))
+        new_avail_bal = Decimal(str(event_detail["new_avail_balance"]))
 
-        ddb = boto3.resource("dynamodb")
-        account_table = ddb.Table(os.environ.get("DDB_TABLE", ""))
-
-        account_table.put_item(
+        ddb_table.put_item(
             Item={
                 "id": account_id,
                 "sid": f"TRX_{transaction_id}",
@@ -45,7 +50,7 @@ def handle_event(event_detail: Dict[str, Any]) -> bool:
             }
         )
 
-        account_table.update_item(
+        ddb_table.update_item(
             Key={
                 "id": customer_id,
                 "sid": account_id,
@@ -53,28 +58,29 @@ def handle_event(event_detail: Dict[str, Any]) -> bool:
             UpdateExpression="""
                 SET avail_balance = :new_avail_balance,
                     ledger_balance  = :new_ledger_balance,
-                    updated_at = :new_timestamp,
+                    updated_at = :new_timestamp
             """,
             ExpressionAttributeValues={
-                "customer_id": customer_id,
-                "account_id": f"ACC_{account_id}",
-                "new_avail_balance": new_avail_bal,
-                "new_bal": new_bal,
-                "new_timestamp": utils.iso_timestamp(),
+                ":new_avail_balance": new_avail_bal,
+                ":new_ledger_balance": new_bal,
+                ":new_timestamp": utils.iso_timestamp(),
             },
         )
 
+        logger.info(f"processed event for transaction {transaction_id}")
         return True
     except KeyError as e:
-        print(e)
         logger.warning("event does not have required attribute %s", e)
     except ClientError as e:
         logger.warning("AWS API exception during processing: %s", e)
+    except Exception as e:
+        raise e
 
+    logger.info(f"unable to processed event for transaction {transaction_id}")
     return False
 
 
 def lambda_handler(event: Dict[str, Any], context: LambdaContext):
     logger.info(event)
     eb_event = EventBridgeEvent(event)
-    return handle_event(eb_event.detail)
+    return process_transfer_event(eb_event.detail, get_ddb_table())
