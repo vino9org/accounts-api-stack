@@ -14,9 +14,9 @@ logger, metrics, tracer = utils.init_monitoring()
 
 
 def get_ddb_table():
-    table_name = os.environ.get("DDB_TABLE")
+    table_name = os.environ.get("DDB_TABLE_NAME")
     if not table_name:
-        raise "DDB_TABLE is not set"
+        raise "DDB_TABLE_NAME is not set"
     ddb = boto3.resource("dynamodb")
     return ddb.Table(table_name)
 
@@ -68,6 +68,7 @@ def process_transfer_event(event_detail: Dict[str, Any], ddb_table=None) -> bool
             },
         )
 
+        logger.info(f"processed event for transaction {transaction_id}")
         return True
     except KeyError as e:
         logger.warning("event does not have required attribute %s", e)
@@ -76,6 +77,7 @@ def process_transfer_event(event_detail: Dict[str, Any], ddb_table=None) -> bool
     except Exception as e:
         raise e
 
+    logger.info(f"unable to processed event for transaction {transaction_id}")
     return False
 
 
