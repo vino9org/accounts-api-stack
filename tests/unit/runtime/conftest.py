@@ -17,7 +17,7 @@ def ddb_table() -> dynamodb.Table:
     local_dynamodb_url = os.environ.get("LOCAL_DYNAMODB_URL")
     if not (local_dynamodb_url and utils.is_http_url(local_dynamodb_url)):
         print("LOCAL_DYNAMODB_URL not defined or malformed, fall back to default AWS endpoint")
-        return
+        return boto3.resource("dynamodb").Table(os.environ.get("DDB_TABLE_NAME"))
 
     ddb = boto3.resource("dynamodb", endpoint_url=local_dynamodb_url)
     table_name = f"accounts-api-{uuid.uuid1().hex}"

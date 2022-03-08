@@ -9,4 +9,6 @@ def run_query(endpoint: str, auth: AWS4Auth, query: str) -> Dict:
     if response.status_code == 200:
         return response.json()
     else:
-        raise Exception(f"Query failed to run by returning code of {response.status_code}. {response.content}")
+        raise Exception(
+            f"Query failed to run by returning code of {response.status_code}. {response.content}"  # type: ignore
+        )
