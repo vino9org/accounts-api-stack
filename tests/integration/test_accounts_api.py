@@ -1,3 +1,5 @@
+import test_utils
+
 import utils
 
 
@@ -17,7 +19,7 @@ def test_query_account(api_url, api_auth):
         utils.TEST_CUSTOMER_ID_1
     )
 
-    response = utils.run_query(
+    response = test_utils.run_query(
         api_url,
         api_auth,
         query,
@@ -49,7 +51,7 @@ def test_query_transactions(api_url, api_auth):
         utils.TEST_ACCOUNT_ID_1,
     )
 
-    response = utils.run_query(
+    response = test_utils.run_query(
         api_url,
         api_auth,
         query,
