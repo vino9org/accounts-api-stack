@@ -6,6 +6,11 @@ from urllib.parse import urlparse
 from aws_lambda_powertools import Logger, Metrics, Tracer
 from aws_lambda_powertools.utilities import parameters
 
+# fixed customer and account id for testing
+# and liveliness probe
+TEST_CUSTOMER_ID_1 = "CUS_01FWWSK432VY3X1T8A4VNYRTGR"
+TEST_ACCOUNT_ID_1 = "ACC_01FWWSNA9DA3N3EQ2JHPQ4WTNR"
+
 
 def init_monitoring() -> Tuple[Logger, Metrics, Tracer]:
     """initialize logger, metrics and tracer"""

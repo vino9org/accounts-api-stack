@@ -4,9 +4,10 @@ from typing import List
 
 import boto3
 import pytest
-import test_utils as utils
 from botocore.exceptions import ClientError
 from requests_aws4auth import AWS4Auth
+
+import utils
 
 _stack_outputs_: List[str] = {}
 

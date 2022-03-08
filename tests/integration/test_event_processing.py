@@ -1,46 +1,14 @@
-import uuid
-from datetime import datetime
 from time import sleep
-from typing import Any, Dict, Tuple
+from typing import Dict, List, Union
 
 import boto3
-import test_utils as utils
+import test_utils
+
+import utils
+from tests.unit.runtime.test_event_handler import gen_test_event
 
 
-def gen_test_event() -> Tuple[str, Dict[Any, Any]]:
-    trx_id = uuid.uuid1().hex
-    detail = (
-        """
-        {
-            "customer_id": "CUS_01FWWSK432VY3X1T8A4VNYRTGR",
-            "account_id": "ACC_01FWWSNA9DA3N3EQ2JHPQ4WTNR",
-            "transaction_id": "%s",
-            "transfer_amount": 1234.56,
-            "previous_balance": 10000.00,
-            "previous_avail_balance": 10000.00,
-            "new_balance": 11234.56,
-            "new_avail_balance" :11234.56,
-            "currency": "SGD",
-            "memo": "to some random account",
-            "transaction_date": "2022-02-27",
-            "status": "completed"
-        }
-    """
-        % trx_id
-    )
-
-    event = {
-        "Time": datetime.now(),
-        "Source": "service.fund_transfer",
-        "DetailType": "transfer",
-        "EventBusName": "default",
-        "Detail": detail,
-    }
-
-    return trx_id, event
-
-
-def invoke_get_transactions_api(api_url, api_auth):
+def invoke_get_transactions_api(api_url, api_auth) -> Union[List[Dict], None]:
     query = """
     query test3 {
     getTransactionsForAccount(
@@ -55,7 +23,7 @@ def invoke_get_transactions_api(api_url, api_auth):
         utils.TEST_ACCOUNT_ID_1,
     )
 
-    response = utils.run_query(
+    response = test_utils.run_query(
         api_url,
         api_auth,
         query,

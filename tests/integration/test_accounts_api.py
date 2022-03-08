@@ -1,4 +1,4 @@
-import test_utils as utils
+import utils
 
 
 def test_query_account(api_url, api_auth):
