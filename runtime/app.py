@@ -1,4 +1,5 @@
 import os
+import sys
 from decimal import Decimal
 from typing import Any, Dict
 
@@ -6,10 +7,37 @@ import boto3
 from aws_lambda_powertools.utilities.data_classes import EventBridgeEvent
 from aws_lambda_powertools.utilities.typing import LambdaContext
 from botocore.exceptions import ClientError
+from pydantic import BaseModel
 
 import utils
 
 logger, metrics, tracer = utils.init_monitoring()
+
+
+class FundTransfer(BaseModel):
+    transaction_id: str
+
+    debit_customer_id: str
+    debit_account_id: str
+    debit_prev_balance: Decimal
+    debit_prev_avail_balance: Decimal
+    debit_balance: Decimal
+    debit_avail_balance: Decimal
+
+    credit_customer_id: str
+    credit_account_id: str
+    credit_prev_balance: Decimal
+    credit_prev_avail_balance: Decimal
+    credit_balance: Decimal
+    credit_avail_balance: Decimal
+
+    transfer_amount: Decimal
+    currency: str
+    memo: str
+    transaction_date: str
+    status: str
+
+    limits_req_id: str
 
 
 def get_ddb_table():
@@ -21,39 +49,61 @@ def get_ddb_table():
 
 
 @tracer.capture_method
-def process_transfer_event(event_detail: Dict[str, Any], ddb_table=None) -> bool:
+def process_transfer_event(event_detail: FundTransfer, ddb_table=None) -> bool:
     # to prevent eventbridge from retrying requests
     # unneccessarily, we need to handle exceptions thrown
     # from processing logic
     try:
-        transaction_id = event_detail["transaction_id"]
-        customer_id = event_detail["customer_id"]
-        account_id = event_detail["account_id"]
-        currency = event_detail["currency"]
-        memo = event_detail["memo"]
-        status = event_detail["status"]
-        transaction_date = event_detail["transaction_date"]
-        amount = Decimal(str(event_detail["transfer_amount"]))
-        new_bal = Decimal(str(event_detail["new_balance"]))
-        new_avail_bal = Decimal(str(event_detail["new_avail_balance"]))
+        transaction_id = event_detail.transaction_id
+        debit_customer_id = event_detail.debit_customer_id
+        debit_account_id = event_detail.debit_account_id
+        debit_bal = Decimal(str(event_detail.debit_balance))
+        debit_avail_bal = Decimal(str(event_detail.credit_avail_balance))
 
+        credit_customer_id = event_detail.credit_customer_id
+        credit_account_id = event_detail.credit_account_id
+        credit_bal = Decimal(str(event_detail.credit_balance))
+        credit_avail_bal = Decimal(str(event_detail.credit_avail_balance))
+        currency = event_detail.currency
+        memo = event_detail.memo
+        status = event_detail.status
+        transaction_date = event_detail.transaction_date
+        amount = Decimal(str(event_detail.transfer_amount))
+        now = utils.iso_timestamp()
+
+        # create transaction record for debit account
         ddb_table.put_item(
             Item={
-                "id": account_id,
-                "sid": f"TRX_{transaction_id}",
-                "memo": memo,
+                "id": debit_account_id,
+                "sid": f"TRX_{transaction_id}_1",
+                "memo": f"transfer {transaction_id} to {credit_account_id}\n{memo}",
                 "amount": amount,
                 "currency": currency,
                 "status": status,
                 "transaction_date": transaction_date,
-                "updated_at": utils.iso_timestamp(),
+                "updated_at": now,
             }
         )
 
+        # create transaction record for credit account
+        ddb_table.put_item(
+            Item={
+                "id": credit_account_id,
+                "sid": f"TRX_{transaction_id}_2",
+                "memo": f"transfer {transaction_id} to {credit_account_id}\n{memo}",
+                "amount": amount,
+                "currency": currency,
+                "status": status,
+                "transaction_date": transaction_date,
+                "updated_at": now,
+            }
+        )
+
+        # update balance credit account
         ddb_table.update_item(
             Key={
-                "id": customer_id,
-                "sid": account_id,
+                "id": debit_customer_id,
+                "sid": debit_account_id,
             },
             UpdateExpression="""
                 SET avail_balance = :new_avail_balance,
@@ -61,9 +111,27 @@ def process_transfer_event(event_detail: Dict[str, Any], ddb_table=None) -> bool
                     updated_at = :new_timestamp
             """,
             ExpressionAttributeValues={
-                ":new_avail_balance": new_avail_bal,
-                ":new_ledger_balance": new_bal,
-                ":new_timestamp": utils.iso_timestamp(),
+                ":new_avail_balance": debit_avail_bal,
+                ":new_ledger_balance": debit_bal,
+                ":new_timestamp": now,
+            },
+        )
+
+        # update balance credit account
+        ddb_table.update_item(
+            Key={
+                "id": credit_customer_id,
+                "sid": credit_account_id,
+            },
+            UpdateExpression="""
+                SET avail_balance = :new_avail_balance,
+                    ledger_balance  = :new_ledger_balance,
+                    updated_at = :new_timestamp
+            """,
+            ExpressionAttributeValues={
+                ":new_avail_balance": credit_avail_bal,
+                ":new_ledger_balance": credit_bal,
+                ":new_timestamp": now,
             },
         )
 
@@ -75,6 +143,8 @@ def process_transfer_event(event_detail: Dict[str, Any], ddb_table=None) -> bool
         logger.warning("AWS API exception during processing: %s", e)
     except Exception as e:
         raise e
+    except:  # noqa
+        logger.warning("Unexpected error:", sys.exc_info()[0])
 
     logger.info(f"unable to processed event for transaction {transaction_id}")
     return False
@@ -83,4 +153,5 @@ def process_transfer_event(event_detail: Dict[str, Any], ddb_table=None) -> bool
 def lambda_handler(event: Dict[str, Any], context: LambdaContext):
     logger.info(event)
     eb_event = EventBridgeEvent(event)
-    return process_transfer_event(eb_event.detail, get_ddb_table())
+    transfer = FundTransfer(**eb_event.detail)
+    return process_transfer_event(transfer, get_ddb_table())

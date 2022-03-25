@@ -54,7 +54,7 @@ def test_fund_transfer_event(api_url, api_auth):
         sleep(5 * i)
         transactions = invoke_get_transactions_api(api_url, api_auth)
         transaction_ids = [t["sid"] for t in transactions]
-        if f"TRX_{trx_id}" in transaction_ids:
+        if f"TRX_{trx_id}_1" in transaction_ids:
             return
         else:
             print("transactions returned:", transaction_ids)
