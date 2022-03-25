@@ -20,6 +20,7 @@ pytest-cov = "^3.0.0"
 requests-aws4auth = "^1.1.1"
 "aws-solutions-constructs.aws-eventbridge-lambda" = "^2.3.0"
 "aws-solutions-constructs.aws-lambda-dynamodb" = "^2.3.0"
+pydantic = "^1.9.0"
 
 
 [build-system]
