@@ -10,17 +10,18 @@ license = "MIT"
 [tool.poetry.dependencies]
 python = "^3.9"
 boto3 = "1.21.4"
-aws-lambda-powertools = "^1.24.2"
-aws-cdk-lib = "^2.13.0"
+aws-lambda-powertools = "^1.27.0"
+aws-cdk-lib = "^2.38.0"
 constructs = "10.*"
 pytest = "^6.2.5"
 pytest-mock = "^3.5.1"
 pytest-cov = "^3.0.0"
-"aws-cdk.aws-appsync-alpha" = "^2.14.0-alpha.0"
+"aws-cdk.aws-appsync-alpha" = "^2.38.1a0"
 requests-aws4auth = "^1.1.1"
-"aws-solutions-constructs.aws-eventbridge-lambda" = "^2.3.0"
-"aws-solutions-constructs.aws-lambda-dynamodb" = "^2.3.0"
+"aws-solutions-constructs.aws-eventbridge-lambda" = "^2.18.0"
+"aws-solutions-constructs.aws-lambda-dynamodb" = "^2.18.0"
 pydantic = "^1.9.0"
+exceptiongroup = "^1.0.0-rc.8"
 
 
 [build-system]
