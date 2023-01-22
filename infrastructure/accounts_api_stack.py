@@ -87,6 +87,11 @@ class AccountsApiStack(Stack):
                 code=_lambda.Code.from_asset(src_dir),
                 layers=[
                     self.powertools_layer("1.24.2"),
+                    _lambda.LayerVersion.from_layer_version_arn(
+                        self,
+                        "NewRelicPython39ARM64",
+                        "arn:aws:lambda:us-west-2:451483290750:layer:NewRelicPython39ARM64:35",
+                    ),
                 ],
                 memory_size=512,
                 architecture=_lambda.Architecture.ARM_64,
