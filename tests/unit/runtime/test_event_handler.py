@@ -29,7 +29,7 @@ def gen_test_event() -> Tuple[str, Dict[Any, Any]]:
         credit_balance=Decimal("2099.98"),
         credit_avail_balance=Decimal("2099.98"),
         status="completed",
-        limits_req_id="AAAA",
+        ref_id="AAAA",
     )
 
     event = {

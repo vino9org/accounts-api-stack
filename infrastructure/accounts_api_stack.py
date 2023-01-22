@@ -85,7 +85,9 @@ class AccountsApiStack(Stack):
                 runtime=_lambda.Runtime.PYTHON_3_9,
                 handler="app.lambda_handler",
                 code=_lambda.Code.from_asset(src_dir),
-                layers=[self.powertools_layer("1.24.2")],
+                layers=[
+                    self.powertools_layer("1.24.2"),
+                ],
                 memory_size=512,
                 architecture=_lambda.Architecture.ARM_64,
                 log_retention=logs.RetentionDays.ONE_WEEK,

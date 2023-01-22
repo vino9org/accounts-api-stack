@@ -37,7 +37,7 @@ class FundTransfer(BaseModel):
     transaction_date: str
     status: str
 
-    limits_req_id: str
+    ref_id: str
 
 
 def get_ddb_table():
