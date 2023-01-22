@@ -48,7 +48,7 @@ def get_ddb_table():
     return ddb.Table(table_name)
 
 
-@tracer.capture_method
+# @tracer.capture_method disable use of tracer, use newrelic instead
 def process_transfer_event(event_detail: FundTransfer, ddb_table=None) -> bool:
     # to prevent eventbridge from retrying requests
     # unneccessarily, we need to handle exceptions thrown

@@ -21,9 +21,10 @@ def init_monitoring() -> Tuple[Logger, Metrics, Tracer]:
     # default metrics namespace and service name are set by env var in template.yaml
     metrics = Metrics()
     metrics.set_default_dimensions(env=env)
-    tracer = Tracer()
 
-    return logger, metrics, tracer
+    # tracer = Tracer() disable tracer. use new relic instead
+
+    return logger, metrics, None
 
 
 def get_app_parameters() -> Dict[str, Union[str, int]]:
